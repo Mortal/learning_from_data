@@ -40,17 +40,19 @@ def backpropagation_iteration(x, y, activations, weights, bias):
 
     assert output.shape == y.reshape(-1, 1).shape
 
-    dz = -(y.reshape(-1, 1) - output)*output*(1-output) # column vector of shape (n_L x 1)
+    dz = -(y.reshape(-1, 1) - output)*output*(1-output)
+    # dz is a column vector of shape (n_L x 1)
     deltas = [dz]
-    prev = dz # invariant: prev.shape = (n_{\ell+1} x 1)
+    prev = dz
+    # invariant: prev.shape = (n_{\ell+1} x 1)
     for a, w, b in zip(reversed(activations[:-1]), reversed(weights), reversed(bias)):
         # invariant: we are looking at level \ell
         # prev := dz^{\ell + 1}
 
         # d z_i^l+1 / d z_j^l = w_{ij}^l \sigma(z_j^l)(1-\sigma(z_j^l))
         # = w_{ij}^l a_j^l(1-a_j^l)
-        dz = w * (a*(1-a)).T # dz_{ij} = w_{ij}^\ell a_j(1-a_j) achieved with broad casting
-        #curr = (prev.T @ dz).T
+        dz = w * (a*(1-a)).T
+        # dz_{ij} = w_{ij}^\ell a_j(1-a_j), achieved with broadcasting
         curr = dz.T @ prev
         deltas.append(curr)
         prev = curr
@@ -82,9 +84,11 @@ def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
 
     assert output.shape == Y.shape
 
-    dz = -(Y - output)*output*(1-output) # matrix of shape (n x n_L)
+    dz = -(Y - output)*output*(1-output)
+    # dz is a matrix of shape (n x n_L)
     deltas = [dz]
-    prev = dz # invariant: prev.shape = (n x n_{\ell+1})
+    prev = dz
+    # invariant: prev.shape = (n x n_{\ell+1})
     for a, w, b in zip(reversed(activations[:-1]), reversed(weights), reversed(bias)):
         # invariant: we are looking at level \ell
         # prev := dz^{\ell + 1}
@@ -95,7 +99,7 @@ def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
         # dz_{kij} = w_{ij}^\ell a_{kj}(1-a_{kj}) achieved with broad casting, k refers to input number.
 
         # dz.shape = (n x n_{\ell+1} x n_{\ell})
-        curr = np.sum(dz*prev[:, :, np.newaxis], axis=1) # uhm.. yeah.. this seems to be correct
+        curr = np.sum(dz*prev[:, :, np.newaxis], axis=1)
         # curr.shape = (n, n_{\ell})
         deltas.append(curr)
         prev = curr
@@ -103,8 +107,8 @@ def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
     assert len(deltas) == len(activations)
     deltas.reverse()
 
-    gradients_w = [(d.T @ a)/n for d, a in zip(deltas[1:], activations[:-1])] # avg gradient.
-
+    # Compute average gradient
+    gradients_w = [(d.T @ a)/n for d, a in zip(deltas[1:], activations[:-1])]
     gradients_b = [np.sum(d, axis=0).reshape(-1, 1)/n for d in deltas[1:]]
 
     assert all(g.shape == w.shape for g, w in zip(gradients_w, weights))
@@ -181,8 +185,8 @@ def backpropagation(X, Y, s, l=0.001):
     t0 = time.time()
     while iterations_left > 0:
         iterations_left -= 1
-        #sample = np.random.choice(X.shape[0])
-        #x, y = X[sample], Y[sample]
+        # sample = np.random.choice(X.shape[0])
+        # x, y = X[sample], Y[sample]
         activations = feed_forward_iteration_matrix(X, Y, W, bias)
         gradients_w, gradients_b = backpropagation_iteration_matrix(X, Y, activations, W, bias)
         gradients_w = regularize(gradients_w, W, l)
