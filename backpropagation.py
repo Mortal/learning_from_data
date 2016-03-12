@@ -1,5 +1,7 @@
 import numpy as np
 import time
+
+
 def sigmoid(x):
     """
     Assume x is a numpy array.
@@ -34,18 +36,18 @@ def backpropagation_iteration(x, y, activations, weights, bias):
     assert len(activations) == len(weights)+1 == len(bias)+1
     assert all(a.shape[0] == w.shape[1] for a, w in zip(activations[:-1], weights))
     assert all(a.shape[0] == w.shape[0] for a, w in zip(activations[1:], weights))
-    
+
     output = activations[-1]
 
     assert output.shape == y.reshape(-1,1).shape
-    
+
     dz = -(y.reshape(-1,1) - output)*output*(1-output) # column vector of shape (n_L x 1)
     deltas = [dz]
     prev = dz # invariant: prev.shape = (n_{\ell+1} x 1)
     for a, w, b in zip(reversed(activations[:-1]), reversed(weights), reversed(bias)):
         # invariant: we are looking at level \ell
         # prev := dz^{\ell + 1}
-        
+
         # d z_i^l+1 / d z_j^l = w_{ij}^l \sigma(z_j^l)(1-\sigma(z_j^l))
         # = w_{ij}^l a_j^l(1-a_j^l)
         dz = w * (a*(1-a)).T # dz_{ij} = w_{ij}^\ell a_j(1-a_j) achieved with broad casting
@@ -55,11 +57,12 @@ def backpropagation_iteration(x, y, activations, weights, bias):
         prev = curr
 
     assert len(deltas) == len(activations)
-        
+
     gradients_w = [d @ a.T for d, a in zip(deltas[1:], reversed(activations[0:-1]))]
     gradients_b = [d for d in deltas[1:]]
 
     return gradients_w, gradients_b
+
 
 def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
     """
@@ -75,18 +78,18 @@ def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
     assert len(activations) == len(weights)+1 == len(bias)+1
     assert all(a.shape[-1] == w.shape[1] for a, w in zip(activations[:-1], weights))
     assert all(a.shape[-1] == w.shape[0] for a, w in zip(activations[1:], weights))
-    
+
     output = activations[-1]
 
     assert output.shape == Y.shape
-    
+
     dz = -(Y - output)*output*(1-output) # matrix of shape (n x n_L)
     deltas = [dz]
     prev = dz # invariant: prev.shape = (n x n_{\ell+1})
     for a, w, b in zip(reversed(activations[:-1]), reversed(weights), reversed(bias)):
         # invariant: we are looking at level \ell
         # prev := dz^{\ell + 1}
-        
+
         # d z_i^l+1 / d z_j^l = w_{ij}^l \sigma(z_j^l)(1-\sigma(z_j^l))
         # = w_{ij}^l a_j^l(1-a_j^l)
         dz = w[np.newaxis, :, :] * (a*(1-a))[:, np.newaxis, :]
@@ -101,7 +104,6 @@ def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
     assert len(deltas) == len(activations)
     deltas.reverse()
 
-    
     gradients_w = [(d.T @ a)/n for d, a in zip(deltas[1:], activations[:-1])] # avg gradient.
 
     gradients_b = [np.sum(d,axis=0).reshape(-1,1)/n for d in deltas[1:]]
@@ -109,6 +111,7 @@ def backpropagation_iteration_matrix(X, Y, activations, weights, bias):
     assert all(g.shape == w.shape for g, w in zip(gradients_w, weights))
 
     return gradients_w, gradients_b
+
 
 def feed_forward_iteration(x, y, weights, bias):
     d, = x.shape
@@ -129,6 +132,7 @@ def feed_forward_iteration(x, y, weights, bias):
 
     return activations
 
+
 def feed_forward_iteration_matrix(X, Y, weights, bias):
     n,d = X.shape
     assert 1 <= len(weights) == len(bias)
@@ -137,7 +141,6 @@ def feed_forward_iteration_matrix(X, Y, weights, bias):
     assert all(w1.shape[0] == w2.shape[1] for w1, w2 in zip(weights[:-1],weights[1:]))
     assert Y.shape == (n,weights[-1].shape[0])
 
-    
     """
     Returns the activation of each node in
     the neural network.
@@ -151,8 +154,10 @@ def feed_forward_iteration_matrix(X, Y, weights, bias):
 
     return activations
 
+
 def regularize(gradient, weights, l=0.0):
     return [g+l*w for g, w in zip(gradient, weights)]
+
 
 def backpropagation(X, Y, s, l=0.001):
     """
@@ -192,8 +197,5 @@ def backpropagation(X, Y, s, l=0.001):
         W = W_new
         bias_new = [b-eta*grad_b for b, grad_b in zip(bias, gradients_b)]
         bias = bias_new
-        
-        
-        
-    return W, bias
 
+    return W, bias
