@@ -6,6 +6,9 @@ def sigmoid(x):
     """
     Assume x is a numpy array.
     sigmoid(x) is used for logistic regression.
+
+    >>> sigmoid([0, 500])
+    array([ 0.5,  1. ])
     """
     x = np.asarray(x)
     assert np.isfinite(x).all()
