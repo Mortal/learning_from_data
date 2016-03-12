@@ -13,8 +13,7 @@ def sigmoid(x):
     x[x < -500] = -500
     ans = np.choose(x < 0,
                     (1/(1+np.exp(-x)),
-                     np.exp(x)/(1+np.exp(x)))
-    )
+                     np.exp(x)/(1+np.exp(x))))
     assert np.isfinite(ans).all()
     if not (ans != 0).all():
         print(x.min())
